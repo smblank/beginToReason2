@@ -867,13 +867,19 @@ node.append("circle")
   .attr("fill", color)
   .attr("opacity", 0.1)
   .attr("class", "translucent")
+  .attr("stroke", "none")
 
 node.append("circle")
   .attr("r", radius)
   .attr("fill", color)
-  .attr("stroke", "#555")
+  .attr("stroke", "#000")
   .attr("stroke-width", 1)
   .attr("class", "opaque")
+
+node.append("circle")
+  .attr("r", radius)
+  .attr("fill", "none")
+  .attr("class", "border")
 
 
 //student circle has to keep track of its studentID and its answer
@@ -892,10 +898,10 @@ simulation.on("tick", () => {
   updateAllowedUsers()
   node
     .attr("transform", d => `translate(${d.x}, ${d.y})`)
-    .selectAll(".opaque")
-    .attr("r", d => radiusHelper(filteredUsers(d).length))
     .attr("stroke-width", boldSelect)
     .attr("stroke", darkSelect)
+    .selectAll(".opaque")
+    .attr("r", d => radiusHelper(filteredUsers(d).length))
 
   link
     .selectAll("path")
