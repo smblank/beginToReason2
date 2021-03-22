@@ -13,7 +13,6 @@ let userNumber = 0
 Object.entries(graph.data.users).forEach((user, index) => {
   userNumber++
   filter.sliderUsers.push(user[0])
-  console.log(index);
   userToColor.set(user[0], index * 360)
 })
 filter.sliderUsers.sort((a, b) => {
@@ -126,7 +125,7 @@ function updateAllowedUsers() {
   })
 }
 
-//returns the user list that the filter accepts
+//returns the user list that the filter accepts, takes the data of an answer
 function filteredUsers(d) {
   allowedUsers = []
   for (let user of d.users) {
@@ -653,6 +652,14 @@ function manageOpaqueLink(d) {
   }
 }
 
+function studentCircleOpacity(d) {
+  if(filter.allowedUsers.includes(d.student)) {
+    return 1
+  } else {
+    return 0.1
+  }
+}
+
 function radius(d) {
   return radiusHelper(d.appearances)
 }
@@ -862,10 +869,10 @@ let node = svg.selectAll(".node")
   })
   .call(drag)
 
+// Only needed to be able to click on where the opaque used to be
 node.append("circle")
   .attr("r", radius)
-  .attr("fill", color)
-  .attr("opacity", 0.1)
+  .attr("opacity", 0)
   .attr("class", "translucent")
   .attr("stroke", "none")
 
@@ -916,7 +923,6 @@ simulation.on("tick", () => {
       const middleY = (targetY + d.source.y) / 2 + Math.sin(rightAngle) * curve * distance
       return `M ${d.source.x} ${d.source.y} Q ${middleX} ${middleY} ${targetX + Math.cos(rightAngle) * curve * 20} ${targetY + Math.sin(rightAngle) * curve * 20}`
     })
-    // .attr("opacity", mainFilter)
     .each(boldLine)
 
   link
@@ -927,4 +933,5 @@ simulation.on("tick", () => {
     .each(studentCircleContainPseudoForce)
     .attr("cx", d => d.x)
     .attr("cy", d => d.y)
+    .attr("opacity", studentCircleOpacity)
 })
