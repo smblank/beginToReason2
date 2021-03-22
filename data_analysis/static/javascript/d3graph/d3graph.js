@@ -2,7 +2,7 @@ document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${gra
 document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const filter = {}
 const userToColor = new Map()
-const studentCircleRadius = 4
+const userCircleRadius = 4
 //users that are checked
 filter.checkBoxUsers = []
 //users in ranked "goodness" order
@@ -28,7 +28,7 @@ const drag = d3.drag()
     disableSimulationForces()
     if (!d3.event.active) {
       simulation.alphaTarget(0.2).restart();
-      studentCircleSimulation.alphaTarget(0.2).restart();
+      userCircleSimulation.alphaTarget(0.2).restart();
     }
     d.fx = d.x
     d.fy = d.y
@@ -64,7 +64,7 @@ const drag = d3.drag()
     }
     if (!d3.event.active) {
       simulation.alpha(0.07).alphaTarget(0).restart()
-      studentCircleSimulation.alpha(0.07).alphaTarget(0).restart()
+      userCircleSimulation.alpha(0.07).alphaTarget(0).restart()
       enableSimulationForces()
     }
     d.fx = null;
@@ -81,18 +81,18 @@ function boundingBox() {
   }
 }
 
-function studentCircleContainPseudoForce(d) {
+function userCircleContainPseudoForce(d) {
   const radius = radiusHelper(d.answer.appearances)
-  if (Math.sqrt((d.x - d.answer.x) ** 2 + (d.y - d.answer.y) ** 2) + studentCircleRadius > radius) {
+  if (Math.sqrt((d.x - d.answer.x) ** 2 + (d.y - d.answer.y) ** 2) + userCircleRadius > radius) {
     const angle = Math.atan2(d.y - d.answer.y, d.x - d.answer.x)
-    d.x = Math.cos(angle) * (radius - studentCircleRadius) + d.answer.x
-    d.y = Math.sin(angle) * (radius - studentCircleRadius) + d.answer.y
+    d.x = Math.cos(angle) * (radius - userCircleRadius) + d.answer.x
+    d.y = Math.sin(angle) * (radius - userCircleRadius) + d.answer.y
   }
 }
 
-function studentCircleGravity() {
-  // for(let studentCircle of studentCircles) {
-  //   studentCircle.y += 2.3
+function userCircleGravity() {
+  // for(let userCircle of userCircles) {
+  //   userCircle.y += 2.3
   // }
 }
 
@@ -166,7 +166,7 @@ Want to go back?`)) {
         window.history.back()
       }
       simulation.stop()
-      studentCircleSimulation.stop()
+      userCircleSimulation.stop()
       svg.remove()
     }
   };
@@ -254,7 +254,7 @@ function enableSimulationForces() {
 
 function restartSimulations() {
   simulation.restart()
-  studentCircleSimulation.restart()
+  userCircleSimulation.restart()
 }
 
 function initializeSlider() {
@@ -310,6 +310,7 @@ function mergeNodes(toMerge) {
   }
   connectNodes(toMerge[1], toMerge[0])
   connectLinks(toMerge[1], toMerge[0])
+  moveUserCircles(toMerge[1], toMerge[0])
   toMerge[0].__data__.mergeList.push(...toMerge[1].__data__.mergeList)
   if (toMerge.length < 3) {
     //done! click on the new one and refresh its color, add a dashed stroke to let the user know it's been messed with
@@ -347,11 +348,12 @@ function unMerge(toSplit) {
       nodes[index].vx = nodes[index].vy = 0
     }
   })
+  moveBackUserCircles(newNodesList)
   addNewEdges(newNodesList)
   addNewNodes(nodeDataArray)
   sortZOrder()
   simulation.alpha(.15).alphaTarget(0).restart()
-  studentCircleSimulation.alpha(.15).alphaTarget(0).restart()
+  userCircleSimulation.alpha(.15).alphaTarget(0).restart()
   enableSimulationForces()
 }
 
@@ -526,6 +528,14 @@ function connectLinks(toDelete, parent) {
     })
 }
 
+function moveUserCircles(toDelete, parent) {
+  for(let userCircle of userCircles) {
+    if(userCircle.answer == toDelete.__data__) {
+      userCircle.answer = parent.__data__
+    }
+  }
+}
+
 function mergePreview(node, dragged) {
   if (checkIllegalMerge(node, dragged)) {
     d3.select(node).selectAll(".preview").remove()
@@ -652,8 +662,8 @@ function manageOpaqueLink(d) {
   }
 }
 
-function studentCircleOpacity(d) {
-  if(filter.allowedUsers.includes(d.student)) {
+function userCircleOpacity(d) {
+  if (filter.allowedUsers.includes(d.user)) {
     return 1
   } else {
     return 0.1
@@ -699,8 +709,8 @@ function fadedColor(d) {
   return `rgb(${Math.min(255, Math.floor(158 * (2.114 - goodness)))}, ${Math.min(Math.floor(158 * goodness + 176), 255)}, 176)`
 }
 
-function studentCircleColor(d) {
-  return `hsl(${userToColor.get(d.student) / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`
+function userCircleColor(d) {
+  return `hsl(${userToColor.get(d.user) / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`
 }
 
 // set the dimensions of graph, data
@@ -766,13 +776,13 @@ maxDistance = maxDistance ** 0.7
 //deep copies
 const originalNodes = JSON.parse(JSON.stringify(nodes))
 const originalLinks = JSON.parse(JSON.stringify(links))
-//make student circles
-let studentCircles = []
+//make user circles
+let userCircles = []
 for (let node of nodes) {
-  for (let student of node.users) {
-    studentCircles.push({
+  for (let user of node.users) {
+    userCircles.push({
       "answer": node,
-      "student": student,
+      "user": user,
       "x": 0,
       "y": 0
     })
@@ -794,9 +804,9 @@ const simulation = d3.forceSimulation()
   .force("bBox", boundingBox)
 
 
-const studentCircleSimulation = d3.forceSimulation()
-  .nodes(studentCircles)
-  .force("collision", d3.forceCollide(studentCircleRadius + 1.6).iterations(20))
+const userCircleSimulation = d3.forceSimulation()
+  .nodes(userCircles)
+  .force("collision", d3.forceCollide(userCircleRadius + 1.6).iterations(20))
 
 
 //Had to wait until simulation was created for these so they can tell the simulation to restart
@@ -889,14 +899,14 @@ node.append("circle")
   .attr("class", "border")
 
 
-//student circle has to keep track of its studentID and its answer
-let studentCircle = svg.selectAll(".studentCircle")
-  .data(studentCircles)
+//user circle has to keep track of its userID and its answer
+let userCircle = svg.selectAll(".userCircle")
+  .data(userCircles)
   .enter()
   .append("circle")
-  .attr("r", studentCircleRadius)
+  .attr("r", userCircleRadius)
   .style("pointer-events", "none")
-  .attr("fill", studentCircleColor)
+  .attr("fill", userCircleColor)
   .attr("stroke-width", 0.7)
   .attr("stroke", "#000")
 
@@ -929,9 +939,9 @@ simulation.on("tick", () => {
     .selectAll(".opaque")
     .each(manageOpaqueLink)
 
-  studentCircle
-    .each(studentCircleContainPseudoForce)
+  userCircle
+    .each(userCircleContainPseudoForce)
     .attr("cx", d => d.x)
     .attr("cy", d => d.y)
-    .attr("opacity", studentCircleOpacity)
+    .attr("opacity", userCircleOpacity)
 })
