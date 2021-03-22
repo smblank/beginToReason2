@@ -1,6 +1,7 @@
 document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${graph.lesson.title}`
 document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const filter = {}
+const studentCircleRadius = 4
 //users that are checked
 filter.checkBoxUsers = []
 //users in ranked "goodness" order
@@ -21,7 +22,10 @@ let selectedNode = ""
 const drag = d3.drag()
   .on("start", function (d) {
     disableSimulationForces()
-    if (!d3.event.active) simulation.alphaTarget(0.2).restart();
+    if (!d3.event.active) {
+      simulation.alphaTarget(0.2).restart();
+      studentCircleSimulation.alphaTarget(0.2).restart();
+    }
     d.fx = d.x
     d.fy = d.y
   })
@@ -56,21 +60,36 @@ const drag = d3.drag()
     }
     if (!d3.event.active) {
       simulation.alpha(0.07).alphaTarget(0).restart()
+      studentCircleSimulation.alpha(0.07).alphaTarget(0).restart()
       enableSimulationForces()
     }
     d.fx = null;
     d.fy = null;
   });
 
-//force for the simulation
+//forces for the simulation
 function boundingBox() {
   let radius
-  let curr_node
-  for (curr_node of nodes) {
+  for (let curr_node of nodes) {
     radius = Math.sqrt(curr_node.appearances) || minSize
     curr_node.x = Math.max(radius + margin.left, Math.min(width - radius - margin.right, curr_node.x));
     curr_node.y = Math.max(radius + margin.top, Math.min(height - radius - margin.bottom, curr_node.y));
   }
+}
+
+function studentCircleContainPseudoForce(d) {
+  const radius = radiusHelper(d.answer.appearances)
+  if (Math.sqrt((d.x - d.answer.x) ** 2 + (d.y - d.answer.y) ** 2) + studentCircleRadius > radius) {
+    const angle = Math.atan2(d.y - d.answer.y, d.x - d.answer.x)
+    d.x = Math.cos(angle) * (radius - studentCircleRadius) + d.answer.x
+    d.y = Math.sin(angle) * (radius - studentCircleRadius) + d.answer.y
+  }
+}
+
+function studentCircleGravity() {
+  // for(let studentCircle of studentCircles) {
+  //   studentCircle.y += 2.3
+  // }
 }
 
 //called each tick
@@ -136,13 +155,14 @@ function setClick(obj, d) {
     updateUserList(d)
     //Check to handle empty lesson
     if (d.appearances > 0) {
-      simulation.restart()
+      restartSimulations()
     } else {
       if (confirm(`Looks like nobody has attempted this lesson yet...
 Want to go back?`)) {
         window.history.back()
       }
       simulation.stop()
+      studentCircleSimulation.stop()
       svg.remove()
     }
   };
@@ -166,7 +186,7 @@ function initializeUserList() {
   }
   document.querySelector("#userList").innerHTML = userString.substring(0, userString.length - 6)
   document.querySelectorAll("#userList input").forEach((element) => element.onclick = setCheckBoxFilter)
-  document.querySelectorAll(".demographic").forEach(element => element.oninput = simulation.restart)
+  document.querySelectorAll(".demographic").forEach(element => element.oninput = restartSimulations)
 }
 
 function updateUserList(d) {
@@ -228,13 +248,16 @@ function enableSimulationForces() {
     .force("bBox", boundingBox)
 }
 
+function restartSimulations() {
+  simulation.restart()
+  studentCircleSimulation.restart()
+}
+
 function initializeSlider() {
   const slider = document.querySelector("#filterSlider")
   filterSlider.min = 1
   filterSlider.value = filterSlider.max = Object.entries(graph.data.users).length
-  filterSlider.oninput = () => {
-    simulation.restart()
-  }
+  filterSlider.oninput = restartSimulations
 }
 
 function listCollisions(id, circle) {
@@ -324,6 +347,7 @@ function unMerge(toSplit) {
   addNewNodes(nodeDataArray)
   sortZOrder()
   simulation.alpha(.15).alphaTarget(0).restart()
+  studentCircleSimulation.alpha(.15).alphaTarget(0).restart()
   enableSimulationForces()
 }
 
@@ -582,7 +606,7 @@ function setCheckBoxFilter() {
       filter.checkBoxUsers.push(element.id)
     }
   })
-  simulation.restart()
+  restartSimulations()
 }
 
 function displayDot(d) {
@@ -715,8 +739,24 @@ nodes.forEach((node, index) => {
 })
 maxDistance--
 maxDistance = maxDistance ** 0.7
+//deep copies
 const originalNodes = JSON.parse(JSON.stringify(nodes))
 const originalLinks = JSON.parse(JSON.stringify(links))
+//make student circles
+let studentCircles = []
+for (let node of nodes) {
+  for (let student of node.users) {
+    studentCircles.push({
+      "answer": node,
+      "student": student,
+      "x": 0,
+      "y": 0
+    })
+  }
+}
+/**
+ * And now the simulation! (the above stuff should have probably been done server-side)
+ */
 // forces
 const simulation = d3.forceSimulation()
   .nodes(nodes)
@@ -728,6 +768,13 @@ const simulation = d3.forceSimulation()
   }).strength(1))
   .force("xVal", d3.forceX(width / 2).strength(0.005))
   .force("bBox", boundingBox)
+
+
+const studentCircleSimulation = d3.forceSimulation()
+  .nodes(studentCircles)
+  .force("charge", d3.forceManyBody().strength(10).distanceMax(30))
+  .force("collision", d3.forceCollide(studentCircleRadius + 2).iterations(20))
+
 
 //Had to wait until simulation was created for these so they can tell the simulation to restart
 initializeUserList()
@@ -819,6 +866,15 @@ node.append("circle")
   .attr("class", "center")
 
 
+//student circle has to keep track of its studentID and its answer
+let studentCircle = svg.selectAll(".studentCircle")
+  .data(studentCircles)
+  .enter()
+  .append("circle")
+  .attr("r", studentCircleRadius)
+  .style("pointer-events", "none")
+
+
 simulation.on("tick", () => {
   updateAllowedUsers()
   node
@@ -849,4 +905,9 @@ simulation.on("tick", () => {
   link
     .selectAll(".opaque")
     .each(manageOpaqueLink)
+
+  studentCircle
+    .each(studentCircleContainPseudoForce)
+    .attr("cx", d => d.x)
+    .attr("cy", d => d.y)
 })
