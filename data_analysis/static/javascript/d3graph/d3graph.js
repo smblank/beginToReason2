@@ -882,6 +882,8 @@ let studentCircle = svg.selectAll(".studentCircle")
   .attr("r", studentCircleRadius)
   .style("pointer-events", "none")
   .attr("fill", studentCircleColor)
+  .attr("stroke-width", 0.5)
+  .attr("stroke", "#000")
 
 
 simulation.on("tick", () => {
