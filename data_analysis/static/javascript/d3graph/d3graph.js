@@ -685,8 +685,7 @@ function fadedColor(d) {
 }
 
 function studentCircleColor(d) {
-  console.log(`hsl(${userToColor.get(d.student) / userNumber}, 75, 50)`);
-  return `hsl(${userToColor.get(d.student) / userNumber}, 75%, 50%)`
+  return `hsl(${userToColor.get(d.student) / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`
 }
 
 // set the dimensions of graph, data
