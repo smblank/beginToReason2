@@ -1,6 +1,7 @@
 document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${graph.lesson.title}`
 document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const filter = {}
+const userToColor = new Map()
 const studentCircleRadius = 4
 //users that are checked
 filter.checkBoxUsers = []
@@ -8,8 +9,12 @@ filter.checkBoxUsers = []
 filter.sliderUsers = []
 //users that should be represent by opaqueness in graph (updated each tick)
 filter.allowedUsers = []
-Object.entries(graph.data.users).forEach((user) => {
+let userNumber = 0
+Object.entries(graph.data.users).forEach((user, index) => {
+  userNumber++
   filter.sliderUsers.push(user[0])
+  console.log(index);
+  userToColor.set(user[0], index * 360)
 })
 filter.sliderUsers.sort((a, b) => {
   return graph.data.users[b].attempts - graph.data.users[a].attempts
@@ -679,6 +684,11 @@ function fadedColor(d) {
   return `rgb(${Math.min(255, Math.floor(158 * (2.114 - goodness)))}, ${Math.min(Math.floor(158 * goodness + 176), 255)}, 176)`
 }
 
+function studentCircleColor(d) {
+  console.log(`hsl(${userToColor.get(d.student) / userNumber}, 75, 50)`);
+  return `hsl(${userToColor.get(d.student) / userNumber}, 75%, 50%)`
+}
+
 // set the dimensions of graph, data
 const width = 960
 const height = 600
@@ -772,8 +782,7 @@ const simulation = d3.forceSimulation()
 
 const studentCircleSimulation = d3.forceSimulation()
   .nodes(studentCircles)
-  .force("charge", d3.forceManyBody().strength(10).distanceMax(30))
-  .force("collision", d3.forceCollide(studentCircleRadius + 2).iterations(20))
+  .force("collision", d3.forceCollide(studentCircleRadius + 1.6).iterations(20))
 
 
 //Had to wait until simulation was created for these so they can tell the simulation to restart
@@ -873,6 +882,7 @@ let studentCircle = svg.selectAll(".studentCircle")
   .append("circle")
   .attr("r", studentCircleRadius)
   .style("pointer-events", "none")
+  .attr("fill", studentCircleColor)
 
 
 simulation.on("tick", () => {
