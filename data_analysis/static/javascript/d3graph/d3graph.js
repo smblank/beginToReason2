@@ -614,11 +614,19 @@ function setCheckBoxFilter() {
   restartSimulations()
 }
 
-function displayDot(d) {
+function boldSelect(d) {
   if (selectedNode == d.name) {
-    return "visible"
+    return 4
   } else {
-    return "hidden"
+    return 1
+  }
+}
+
+function darkSelect(d) {
+  if (selectedNode == d.name) {
+    return "#000"
+  } else {
+    return "#555"
   }
 }
 
@@ -868,12 +876,6 @@ node.append("circle")
   .attr("class", "opaque")
 
 
-node.append("circle")
-  .attr("r", minSize - 2)
-  .attr("stroke-width", 0)
-  .attr("class", "center")
-
-
 //student circle has to keep track of its studentID and its answer
 let studentCircle = svg.selectAll(".studentCircle")
   .data(studentCircles)
@@ -882,7 +884,7 @@ let studentCircle = svg.selectAll(".studentCircle")
   .attr("r", studentCircleRadius)
   .style("pointer-events", "none")
   .attr("fill", studentCircleColor)
-  .attr("stroke-width", 0.5)
+  .attr("stroke-width", 0.7)
   .attr("stroke", "#000")
 
 
@@ -892,10 +894,8 @@ simulation.on("tick", () => {
     .attr("transform", d => `translate(${d.x}, ${d.y})`)
     .selectAll(".opaque")
     .attr("r", d => radiusHelper(filteredUsers(d).length))
-
-  node
-    .selectAll(".center")
-    .attr("visibility", displayDot)
+    .attr("stroke-width", boldSelect)
+    .attr("stroke", darkSelect)
 
   link
     .selectAll("path")
