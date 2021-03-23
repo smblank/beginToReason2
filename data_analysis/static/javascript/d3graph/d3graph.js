@@ -479,8 +479,8 @@ function connectNodes(toDelete, parent) {
   parentData.users = parentData.users.concat(childData.users)
   //delete old node
   d3.select(toDelete).remove()
-  //set translucent size
-  d3.select(parent).select(".translucent").attr("r", radius)
+  //set translucent, border size
+  d3.select(parent).selectAll(".translucent, .border").attr("r", radius)
   node = d3.selectAll(".node")
 }
 
@@ -665,7 +665,7 @@ function setCheckBoxFilter() {
 
 function boldSelect(d) {
   if (selectedNode == d.name) {
-    return 4
+    return 2.5
   } else {
     return 1
   }
