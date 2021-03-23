@@ -316,7 +316,7 @@ function mergeNodes(toMerge) {
     toMerge[0].onclick()
     resetPreview(toMerge[0])
     d3.select(toMerge[0]).selectAll(".opaque, .translucent").attr("fill", color)
-    d3.select(toMerge[0]).select(".opaque").attr("stroke", "#000").attr("stroke-dasharray", "5, 3")
+    d3.select(toMerge[0]).select(".border").attr("stroke", "#000").attr("stroke-dasharray", "5, 3")
     return
   } else {
     //recursive
@@ -675,7 +675,7 @@ function darkSelect(d) {
   if (selectedNode == d.name) {
     return "#000"
   } else {
-    return "#555"
+    return "#AAA"
   }
 }
 
@@ -706,7 +706,7 @@ function userCircleOpacity(d) {
   if (filter.allowedUsers.includes(d.user)) {
     return 1
   } else {
-    return 0.1
+    return 0.15
   }
 }
 
