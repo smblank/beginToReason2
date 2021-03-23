@@ -2,17 +2,17 @@ document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${gra
 document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const filter = {}
 const userToColor = new Map()
-const userCircleRadius = 4
+const userCircleRadius = 3.7
 //users that are checked
 filter.checkBoxUsers = []
 //users in ranked "goodness" order
 filter.sliderUsers = []
 //users that should be represent by opaqueness in graph (updated each tick)
 filter.allowedUsers = []
-const userNumber = Object.keys(graph.data.users).length
+// const userNumber = Object.keys(graph.data.users).length
 Object.entries(graph.data.users).forEach((user, index) => {
   filter.sliderUsers.push(user[0])
-  userToColor.set(user[0], `hsl(${index * 360 / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`)
+  userToColor.set(user[0], `hsl(${Math.random() * 360}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`)
 })
 filter.sliderUsers.sort((a, b) => {
   return graph.data.users[b].attempts - graph.data.users[a].attempts
@@ -185,19 +185,17 @@ function initializeUserList() {
   let userString = ""
   for (let user of Object.entries(graph.data.users)) {
     userString += `<div><input type="checkbox" id="${user[0]}">
-        <label for="${user[0]}" style="display: block"></label></div>`
+        <label for="${user[0]}"></label><label for="${user[0]}" style="background-color: ${userToColor.get(user[0])}; float: right;";>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label></div>`
   }
-  document.querySelector("#userList").innerHTML = userString.substring(0, userString.length - 6)
+  document.querySelector("#userList").innerHTML = userString
   document.querySelectorAll("#userList input").forEach((element) => element.onclick = setCheckBoxFilter)
   document.querySelectorAll(".demographic").forEach(element => element.oninput = restartSimulations)
 }
 
 function updateUserList(d) {
-  const inputs = document.querySelectorAll("#userList input")
+  const inputs = document.querySelectorAll("#userList > div")
+  console.log(inputs);
   inputs.forEach((element) => {
-    element.style.display = "none"
-  })
-  document.querySelectorAll("#userList label").forEach((element) => {
     element.style.display = "none"
   })
   //count users
@@ -211,11 +209,11 @@ function updateUserList(d) {
   }
   inputs.forEach((element) => {
     for (let user of userMap) {
-      if (user[0] == element.id) {
+      if (user[0] == element.querySelector("input").id) {
+        console.log("show!");
         //show!
-        element.style.display = "initial"
-        const label = document.querySelector(`#userList label[for="${element.id}"]`)
-        label.style.display = "initial"
+        element.style.display = "block"
+        const label = element.querySelector("label")
         //handle multiple occurrences
         if (user[1] > 1) {
           label.textContent = `${graph.data.users[user[0]].name} (${user[1]})`
