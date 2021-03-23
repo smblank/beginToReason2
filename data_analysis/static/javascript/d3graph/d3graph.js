@@ -624,25 +624,26 @@ function clearAllUserChecks() {
 
 function selectAllUserChecks() {
   let foundUnchecked = false
-  document.querySelectorAll("#userList input").forEach((element) => {
+  for(let element of document.querySelectorAll("#userList > div")) {
     if (element.style.display != "none") {
-      if (!element.checked) {
+      if (!element.querySelector("input").checked) {
         foundUnchecked = true
+        break
       }
     }
-  })
+  }
   if (!foundUnchecked) {
-    document.querySelectorAll("#userList input").forEach((element) => {
+    document.querySelectorAll("#userList > div").forEach((element) => {
       if (element.style.display != "none") {
-        element.checked = false
+        element.querySelector("input").checked = false
       }
     })
     setCheckBoxFilter()
     return
   }
-  document.querySelectorAll("#userList input").forEach((element) => {
+  document.querySelectorAll("#userList > div").forEach((element) => {
     if (element.style.display != "none") {
-      element.checked = true
+      element.querySelector("input").checked = true
     }
   })
   setCheckBoxFilter()
@@ -650,9 +651,9 @@ function selectAllUserChecks() {
 
 function setCheckBoxFilter() {
   filter.checkBoxUsers = []
-  document.querySelectorAll("#userList input").forEach((element) => {
-    if (element.checked) {
-      filter.checkBoxUsers.push(element.id)
+  document.querySelectorAll("#userList input").forEach((input) => {
+    if (input.checked) {
+      filter.checkBoxUsers.push(input.id)
     }
   })
   restartSimulations()
