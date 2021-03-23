@@ -62,8 +62,7 @@ const drag = d3.drag()
       mergeNodes(collidedList)
     }
     if (!d3.event.active) {
-      simulation.alpha(0.07).alphaTarget(0).restart()
-      userCircleSimulation.alpha(0.07).alphaTarget(0).restart()
+      restartSimulations()
       enableSimulationForces()
     }
     d.fx = null;
@@ -81,18 +80,12 @@ function boundingBox() {
 }
 
 function userCircleContainPseudoForce(d) {
-  const radius = radiusHelper(d.answer.appearances)
-  if (Math.sqrt((d.x - d.answer.x) ** 2 + (d.y - d.answer.y) ** 2) + userCircleRadius > radius) {
+  const containerRadius = filter.allowedUsers.includes(d.user) ? radiusHelper(filteredUsers(d.answer).length) : radius(d.answer)
+  if (Math.sqrt((d.x - d.answer.x) ** 2 + (d.y - d.answer.y) ** 2) + userCircleRadius > containerRadius) {
     const angle = Math.atan2(d.y - d.answer.y, d.x - d.answer.x)
-    d.x = Math.cos(angle) * (radius - userCircleRadius) + d.answer.x
-    d.y = Math.sin(angle) * (radius - userCircleRadius) + d.answer.y
+    d.x = Math.cos(angle) * (containerRadius - userCircleRadius) + d.answer.x
+    d.y = Math.sin(angle) * (containerRadius - userCircleRadius) + d.answer.y
   }
-}
-
-function userCircleGravity() {
-  // for(let userCircle of userCircles) {
-  //   userCircle.y += 2.3
-  // }
 }
 
 //called each tick
@@ -194,7 +187,6 @@ function initializeUserList() {
 
 function updateUserList(d) {
   const inputs = document.querySelectorAll("#userList > div")
-  console.log(inputs);
   inputs.forEach((element) => {
     element.style.display = "none"
   })
@@ -210,7 +202,6 @@ function updateUserList(d) {
   inputs.forEach((element) => {
     for (let user of userMap) {
       if (user[0] == element.querySelector("input").id) {
-        console.log("show!");
         //show!
         element.style.display = "block"
         const label = element.querySelector("label")
@@ -250,6 +241,12 @@ function enableSimulationForces() {
 }
 
 function restartSimulations() {
+  if (simulation.alpha() < 0.05 || simulation.alphaTarget() != 0) {
+    simulation.alpha(0.05).alphaTarget(0).restart()
+  }
+  if (userCircleSimulation.alpha() < 0.05 || userCircleSimulation.alphaTarget() != 0) {
+    userCircleSimulation.alpha(0.05).alphaTarget(0).restart()
+  }
   simulation.restart()
   userCircleSimulation.restart()
 }
@@ -569,7 +566,7 @@ function moveBackUserCircles(newNodesCopy, parentID) {
       changeAnswer(userCircle)
     }
   }
-  if(newNodesCopy) {
+  if (newNodesCopy) {
     console.error("I wasn't able to bind all the old userCircles!");
   }
 }
@@ -951,8 +948,9 @@ simulation.on("tick", () => {
     .attr("transform", d => `translate(${d.x}, ${d.y})`)
     .attr("stroke-width", boldSelect)
     .attr("stroke", darkSelect)
+    .each(d => d.filteredRadius = radiusHelper(filteredUsers(d).length))
     .selectAll(".opaque")
-    .attr("r", d => radiusHelper(filteredUsers(d).length))
+    .attr("r", d => d.filteredRadius)
 
   link
     .selectAll("path")
