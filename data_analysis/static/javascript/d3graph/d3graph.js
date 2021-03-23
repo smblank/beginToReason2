@@ -9,11 +9,10 @@ filter.checkBoxUsers = []
 filter.sliderUsers = []
 //users that should be represent by opaqueness in graph (updated each tick)
 filter.allowedUsers = []
-let userNumber = 0
+const userNumber = Object.keys(graph.data.users).length
 Object.entries(graph.data.users).forEach((user, index) => {
-  userNumber++
   filter.sliderUsers.push(user[0])
-  userToColor.set(user[0], index * 360)
+  userToColor.set(user[0], `hsl(${index * 360 / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`)
 })
 filter.sliderUsers.sort((a, b) => {
   return graph.data.users[b].attempts - graph.data.users[a].attempts
@@ -750,10 +749,6 @@ function fadedColor(d) {
   return `rgb(${Math.min(255, Math.floor(158 * (2.114 - goodness)))}, ${Math.min(Math.floor(158 * goodness + 176), 255)}, 176)`
 }
 
-function userCircleColor(d) {
-  return `hsl(${userToColor.get(d.user) / userNumber}, ${Math.random() * 50 + 50}%, ${Math.random() * 50 + 25}%)`
-}
-
 // set the dimensions of graph, data
 const width = 960
 const height = 600
@@ -947,7 +942,7 @@ let userCircle = svg.selectAll(".userCircle")
   .append("circle")
   .attr("r", userCircleRadius)
   .style("pointer-events", "none")
-  .attr("fill", userCircleColor)
+  .attr("fill", d => userToColor.get(d.user))
   .attr("stroke-width", 0.7)
   .attr("stroke", "#000")
 
