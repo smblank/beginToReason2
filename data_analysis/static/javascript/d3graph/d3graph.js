@@ -2,7 +2,7 @@ document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${gra
 document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const filter = {}
 const userToColor = new Map()
-const userCircleRadius = 3.7
+const userCircleRadius = 3.2
 //users that are checked
 filter.checkBoxUsers = []
 //users in ranked "goodness" order
@@ -376,20 +376,21 @@ function addNewNodes(nodeDataArray) {
   newNodes.append("circle")
     .attr("r", radius)
     .attr("fill", color)
-    .attr("opacity", 0.1)
+    .attr("opacity", 0)
     .attr("class", "translucent")
 
   newNodes.append("circle")
     .attr("r", radius)
     .attr("fill", color)
-    .attr("stroke", "#555")
+    .attr("stroke", "#000")
     .attr("stroke-width", 1)
     .attr("class", "opaque")
 
   newNodes.append("circle")
-    .attr("r", minSize - 2)
-    .attr("stroke-width", 0)
-    .attr("class", "center")
+    .attr("r", radius)
+    .attr("fill", "none")
+    .attr("class", "border")
+
   node = svg.selectAll(".node")
   newNodes.nodes()[0].onclick()
 }
@@ -624,7 +625,7 @@ function clearAllUserChecks() {
 
 function selectAllUserChecks() {
   let foundUnchecked = false
-  for(let element of document.querySelectorAll("#userList > div")) {
+  for (let element of document.querySelectorAll("#userList > div")) {
     if (element.style.display != "none") {
       if (!element.querySelector("input").checked) {
         foundUnchecked = true
@@ -838,7 +839,7 @@ const simulation = d3.forceSimulation()
 
 const userCircleSimulation = d3.forceSimulation()
   .nodes(userCircles)
-  .force("collision", d3.forceCollide(userCircleRadius + 1.6).iterations(20))
+  .force("collision", d3.forceCollide(userCircleRadius + 2.1).iterations(20))
 
 
 //Had to wait until simulation was created for these so they can tell the simulation to restart
