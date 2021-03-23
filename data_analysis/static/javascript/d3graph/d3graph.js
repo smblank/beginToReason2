@@ -348,7 +348,7 @@ function unMerge(toSplit) {
       nodes[index].vx = nodes[index].vy = 0
     }
   })
-  moveBackUserCircles(newNodesList)
+  moveBackUserCircles(JSON.parse(JSON.stringify(nodeDataArray)), toSplit.__data__.id)
   addNewEdges(newNodesList)
   addNewNodes(nodeDataArray)
   sortZOrder()
@@ -529,10 +529,51 @@ function connectLinks(toDelete, parent) {
 }
 
 function moveUserCircles(toDelete, parent) {
-  for(let userCircle of userCircles) {
-    if(userCircle.answer == toDelete.__data__) {
+  for (let userCircle of userCircles) {
+    if (userCircle.answer == toDelete.__data__) {
       userCircle.answer = parent.__data__
     }
+  }
+}
+
+function moveBackUserCircles(newNodesCopy, parentID) {
+  const changeAnswer = (userCircle) => {
+    for (let i = 0; i < newNodesCopy.length; i++) {
+      for (let j = 0; j < newNodesCopy[i].users.length; j++) {
+        if (userCircle.user == newNodesCopy[i].users[j]) {
+          //This userCircle can go to this node! Just need to find the current node to match up...
+          returnToOriginal(userCircle, newNodesCopy[i].id)
+          //Now that that's rectified, I should delete this so I don't do the same thing again
+          if (newNodesCopy[i].users.length == 1) {
+            //It'll be empty after I delete, best if I delete the whole node
+            newNodesCopy.splice(i, 1)
+            return
+          }
+          newNodesCopy[i].users.splice(j, 1)
+          return
+        }
+      }
+      //It's fine that I didn't find a user, I can go to the next node
+    }
+  }
+  const returnToOriginal = (userCircle, newNodeCopyID) => {
+    for (let node of nodes) {
+      if (node.id == newNodeCopyID) {
+        //Found it!
+        userCircle.answer = node
+        return
+      }
+    }
+    console.error("I couldn't find the current node to bind to!");
+  }
+  for (let userCircle of userCircles) {
+    if (userCircle.answer.id == parentID) {
+      //we gotta change its answer
+      changeAnswer(userCircle)
+    }
+  }
+  if(newNodesCopy) {
+    console.error("I wasn't able to bind all the old userCircles!");
   }
 }
 
