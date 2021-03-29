@@ -1,7 +1,7 @@
 """
 Main file for displaying graphs.
 """
-import json
+import json, re
 from data_analysis.py_helper_functions.graph_viewer.node import Node
 from data_analysis.models import DataLog
 from accounts.models import UserInformation
@@ -20,14 +20,15 @@ def lesson_to_graph(lesson_id):
     prev_node = start_node
     nodes_in_chain.append(prev_node)
     if not query:
-        #Nobody has taken this lesson yet!
+        # Nobody has taken this lesson yet!
         return start_node, {}
     prev_student = query[0].user_key
     users_dict[str(user_number)] = user_to_dict(prev_student, str(user_number))
     for log in query:
         # Take only the (first) code between Confirm and ;
-        log.code = log.code.split("Confirm")[1].split("\r")[
-            0].strip().strip(";")
+        # log.code = log.code.split("Confirm")[1].split("\r")[
+        #     0].strip().strip(";")
+        log.code = locate_confirms(log.code);
         prev_node.add_appearance(str(user_number))
         # Is this kid same as the last one?
         if log.user_key != prev_student:
@@ -57,8 +58,6 @@ def lesson_to_graph(lesson_id):
         current_node = start_node.find_node(log.code)
         if not current_node:
             current_node = Node(log.code, answer_correct)
-        if current_node.is_correct != answer_correct:
-            print("\n\n\nI (think I) found conflicting data!!!\n(It's probably a lesson with 2 confirms)\n\n\n")
         prev_node.add_next(current_node, str(user_number))
         nodes_in_chain.append(current_node)
         prev_node = current_node
@@ -83,20 +82,34 @@ def lesson_to_json(lesson_id):
     (root, users) = lesson_to_graph(lesson_id)
     nodes = []
     edges = []
+    allowed = filter_by_appearances(root.return_family())
     for node in root.return_family():
-        nodes.append(node.to_dict())
-        for edge in node.edge_dict():
-            edges.append(edge)
+        if allowed.get(node.get_hash_code()):
+            nodes.append(node.to_dict())
+            for edge in node.edge_dict():
+                if allowed.get(edge["target"]):
+                    edges.append(edge)
     return json.dumps({"nodes": nodes, "links": edges, "users": users})
 
-# Helper function
+
+# Returns a dict containing the IDs of allowed nodes
+def filter_by_appearances(node_list):
+    min_appearances = find_optimal_min(node_list)
+    allowed = {}
+    for node in node_list:
+        if (len(node.appearances) >= min_appearances) + (node.attempt == Node.GAVE_UP_NAME):
+            allowed[node.get_hash_code()] = True
+    return allowed
+
+
+# Helper function, not used currently
 def find_optimal_min(node_list):
     appearances = []
     for node in node_list:
-        appearances.append(node.appearances)
+        appearances.append(len(node.appearances))
     appearances.sort()
-    # 15 or less nodes will be allowed in graph
-    max_nodes = 15
+    # 25 or less nodes will be allowed in graph
+    max_nodes = 25
     if len(appearances) > max_nodes:
         return appearances[len(appearances) - max_nodes - 1] + 1
     # Just in case it's a teeny tiny lesson with a small amount of nodes
@@ -111,11 +124,24 @@ def lesson_stats(lesson_id):
 def user_to_dict(user, user_number):
     return {"name": user_number, "attempts": 0, "gender": get_user_info(user).user_gender}
 
+
 def get_name(user):
     return str(user)
     # if not user.first_name:
     #     return "admin"
     # return user.first_name + " " + user.last_name
 
+
 def get_user_info(user):
     return UserInformation.objects.get(user=user.id)
+
+
+def locate_confirms(code):
+    lines = re.findall("Confirm [^;]*;|ensures [^;]*;", code)
+    ans = ""
+    for line in lines:
+        ans += line[8:len(line) - 1]
+        ans += ", "
+    if len(lines) > 1:
+        return "{" + ans[:len(ans) - 2] + "}"
+    return ans[:len(ans) - 2]

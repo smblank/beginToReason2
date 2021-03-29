@@ -2,6 +2,7 @@
 Class that represents an attempt made by students.
 """
 
+
 class Node:
     START_COLOR_CODE = "#9cffed"
     GAVE_UP_COLOR_CODE = "#f58787"
