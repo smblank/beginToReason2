@@ -118,7 +118,8 @@ def find_optimal_min(node_list):
 
 def lesson_stats(lesson_id):
     lesson = Lesson.objects.get(id=lesson_id)
-    return json.dumps({"name": lesson.lesson_name, "title": lesson.lesson_title, "instruction": lesson.instruction, "code": lesson.code.lesson_code})
+    return json.dumps({"name": lesson.lesson_name, "title": lesson.lesson_title,
+                       "instruction": lesson.instruction, "code": lesson.code.lesson_code})
 
 
 def user_to_dict(user, user_number):

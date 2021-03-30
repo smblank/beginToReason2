@@ -10,7 +10,8 @@ from data_analysis.py_helper_functions.graph_viewer.lesson_reader import lesson_
 # Create your views here.
 def d3_graph(request, index):
     print(request)
-    return render(request, "data_analysis/d3graph.html", {'graphData': lesson_to_json(index), 'lessonData': lesson_stats(index)})
+    return render(request, "data_analysis/d3graph.html", {'graphData': lesson_to_json(index),
+                                                          'lessonData': lesson_stats(index)})
 
 
 def set_statistics(request, index):
