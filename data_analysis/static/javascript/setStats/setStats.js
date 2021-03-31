@@ -67,10 +67,6 @@ let newCard
 const lessons = lessonSetData["lessons"]
 const bounds = lessonSetData["statBounds"]
 for (let lesson of lessons) {
-    //Throw out lessons that haven't been taken yet
-    if (!lesson.userCount) {
-        continue
-    }
     newCard = HTMLStringToElement(`<div class="col-3" style="margin: 20px 15px; cursor: pointer">
     <div class="card" id="lesson${lesson.lessonIndex}">
         <div class="card-body">

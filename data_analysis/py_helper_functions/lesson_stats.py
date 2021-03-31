@@ -7,7 +7,9 @@ from core.models import Lesson, LessonSet
 def get_set_stats(lesson_set_id):
     lesson_set_list = []
     for index, lesson in enumerate(LessonSet.objects.get(id=lesson_set_id).lessons.all()):
-        lesson_set_list.append(get_lesson_stats(lesson, index))
+        if not lesson.is_alternate:
+            # Throwing out alternate lessons
+            lesson_set_list.append(get_lesson_stats(lesson, index))
     return json.dumps({"lessons": lesson_set_list, "statBounds": find_stat_ranges(lesson_set_list)})
 
 
@@ -23,6 +25,7 @@ def get_user_stats(lesson, index):
     query = DataLog.objects.filter(
         lesson_key_id=lesson.id).order_by('user_key', 'time_stamp')
     if not query:
+        # Means that no students have taken the lesson yet
         return {"userCount": 0, "completionRate": 0, "firstTryRate": 0, "averageAttempts": 0, "lessonIndex": index}
     user_count = 1
     completions = 0

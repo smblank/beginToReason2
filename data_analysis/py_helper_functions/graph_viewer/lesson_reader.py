@@ -121,35 +121,29 @@ def lesson_info(set_id, lesson_index):
     lessons = LessonSet.objects.get(id=set_id).lessons.all()
     lesson = lessons[lesson_index]
     return json.dumps({"name": lesson.lesson_name, "title": lesson.lesson_title, "instruction": lesson.instruction,
-                       "code": lesson.code.lesson_code, "prevLesson": find_prev_lesson(lesson, lessons),
-                       "nextLesson": find_next_lesson(lesson, lessons)})
+                       "code": lesson.code.lesson_code, "prevLesson": find_prev_lesson(lesson_index, lessons),
+                       "nextLesson": find_next_lesson(lesson_index, lessons)})
 
 
-# Returns the index of the previous lesson given the set of lessons and the current lesson
-def find_prev_lesson(current_lesson, lessons):
-    return find_prev_helper(lessons[0], None, current_lesson, lessons)
-
-
-# Recursively steps through until it finds something that points to the lesson (won't work for sublessons)
-def find_prev_helper(current, previous, target, lessons):
-    if current == target:
-        # Base case!
-        if previous is None:
-            # In case we're trying to find previous of the first lesson
-            return -1
-        for index, lesson in enumerate(lessons):
-            if lesson == previous:
-                return index
-        print("BAD BAD BAD (I shouldn't be here)")
-        return -1
-    return find_prev_helper(Lesson.objects.get(lesson_name=current.correct), current, target, lessons)
-
-
-# Returns index in the lesson set of the next lesson
-def find_next_lesson(current_lesson, lessons):
-    for index, lesson in enumerate(lessons):
-        if lesson.lesson_name == current_lesson.correct:
+# Returns the index of the previous lesson, skipping over alternate lessons
+def find_prev_lesson(current_lesson_index, lessons):
+    index = current_lesson_index - 1
+    while index > -1:
+        if not lessons[index].is_alternate:
             return index
+        index -= 1
+    # Didn't find it - was the first non-alternate lesson in the set
+    return -1
+
+
+# Returns index in the lesson set of the next lesson, skipping over alternate lessons
+def find_next_lesson(current_lesson, lessons):
+    index = current_lesson + 1
+    while index < len(lessons):
+        if not lessons[index].is_alternate:
+            return index
+        index += 1
+    # Didn't find it
     return -1
 
 

@@ -5,6 +5,10 @@
 {% compress css %}
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/catalog.scss' %}" media="screen">
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/profile.scss' %}" media="screen">
+<style>
+    /* temporary and ugly fix */
+    body {overflow-y: hidden;}
+</style>
 {% endcompress %}
 {% endblock %}
 
@@ -23,10 +27,16 @@
         </div>
         <div class="w-100"></div>
         <div class="col-2">
-            <h3 class="text-center">Lesson Code</h3>
-            <div id="graphCode" style="max-height: 50vh; overflow: auto; background-color: #CCC; padding: 5px"></div>
-            <h3 class="text-center" style="margin: 10px 0px">Filter by Answers Tried</h3>
-            <input id="filterSlider" type="range" style="transform: translate(50%, 0) scale(2, 2); margin: 10px 0px">
+            <div class="card">
+                <h3 class="text-center">Lesson Code</h3>
+                <div id="graphCode" style="max-height: 50vh; overflow: auto; background-color: #CCC; padding: 5px"></div>
+            </div>
+            <div class="card" style="margin: 10px 0px">
+                <h3 class="text-center" style="margin: 10px 0px">Filter by Answers Tried</h3>
+                <div class="card-body">
+                    <input id="filterSlider" type="range" style="transform: translate(50%, 0) scale(2, 2); margin: 10px 0px">
+                </div>
+            </div>
             <div class="row">
                 <div class="col-4">
                     <input data-category="gender" data-class="Male" class="demographic" id="male" name="male" type="checkbox" checked>
@@ -46,20 +56,22 @@
             <svg id="lessonGraph" class="col-12"></svg>
         </div>
         <div style="display: flex; flex-direction: column" class="row col-2">
-            <h3 class="text-center">Selected Answer</h3>
-            <div id="nodeInfo" style="border: 1px solid black">
-                <h4 id="nodeName">Name: </h4>
-                <h4 id="nodeAppearances">Appearances: </h4>
-                <h4 id="nodeDistance">Distance: </h4>
-                <h4 id="nodeCorrect">Correct: </h4>
+            <div class="card">
+                <h3 class="text-center card-title">Selected Answer</h3>
+                <div id="nodeInfo" class="card-body" style="border: 1px solid black">
+                    <h4 id="nodeName">Name: </h4>
+                    <h4 id="nodeAppearances">Appearances: </h4>
+                    <h4 id="nodeDistance">Distance: </h4>
+                    <h4 id="nodeCorrect">Correct: </h4>
+                </div>
             </div>
-            <input id="splitNodes" type="button" value="Split">
+            <btn class="btn btn-primary" id="splitNodes" type="button">Split</btn>
             <div style="margin-top: 10px">
                 <h3 class="text-center" style="display: inline">Users</h3>
-                <input id="selectClear" type="button" value="Clear" style="float: right;">
-                <input id="selectAll" type="button" value="Select All" style="float: right;">
+                <btn class="btn btn-primary" id="selectClear" type="button" style="float: right; margin: 5px">Clear</btn>
+                <btn class="btn btn-primary" id="selectAll" type="button" style="float: right; margin: 5px">Select All</btn>
             </div>
-            <div id="userList" style="max-height: 50vh; overflow: auto; padding: 5px; border: 1px solid black"></div>
+            <div class="card" id="userList" style="max-height: 49vh; overflow: auto; padding: 5px;"></div>
         </div>
     </div>
 </div>
