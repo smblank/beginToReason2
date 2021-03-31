@@ -1,18 +1,18 @@
 """
 Main file for displaying graphs.
 """
-import json, re
-from data_analysis.py_helper_functions.graph_viewer.node import Node
-from data_analysis.models import DataLog
+import json
+import re
 from accounts.models import UserInformation
-from core.models import Lesson
+from core.models import Lesson, LessonSet
+from data_analysis.models import DataLog
+from data_analysis.py_helper_functions.graph_viewer.node import Node
 
 
 # Takes a lesson index and returns the START node of its graph representation
 def lesson_to_graph(lesson_id):
     user_number = 1
-    query = DataLog.objects.filter(
-        lesson_key_id=lesson_id).order_by('user_key', 'time_stamp')
+    query = DataLog.objects.filter(lesson_key_id=lesson_id).order_by('user_key', 'time_stamp')
     users_dict = {}
     nodes_in_chain = []
     start_node = Node(Node.START_NAME, False)
@@ -78,7 +78,8 @@ def lesson_to_graph(lesson_id):
 
 
 # Takes a lesson index and returns a JSON representation fit for D3
-def lesson_to_json(lesson_id):
+def lesson_to_json(set_id, lesson_index):
+    lesson_id = LessonSet.objects.get(id=set_id).lessons.all()[lesson_index].id
     (root, users) = lesson_to_graph(lesson_id)
     nodes = []
     edges = []
@@ -116,10 +117,40 @@ def find_optimal_min(node_list):
     return 0
 
 
-def lesson_stats(lesson_id):
-    lesson = Lesson.objects.get(id=lesson_id)
-    return json.dumps({"name": lesson.lesson_name, "title": lesson.lesson_title,
-                       "instruction": lesson.instruction, "code": lesson.code.lesson_code})
+def lesson_info(set_id, lesson_index):
+    lessons = LessonSet.objects.get(id=set_id).lessons.all()
+    lesson = lessons[lesson_index]
+    return json.dumps({"name": lesson.lesson_name, "title": lesson.lesson_title, "instruction": lesson.instruction,
+                       "code": lesson.code.lesson_code, "prevLesson": find_prev_lesson(lesson, lessons),
+                       "nextLesson": find_next_lesson(lesson, lessons)})
+
+
+# Returns the index of the previous lesson given the set of lessons and the current lesson
+def find_prev_lesson(current_lesson, lessons):
+    return find_prev_helper(lessons[0], None, current_lesson, lessons)
+
+
+# Recursively steps through until it finds something that points to the lesson (won't work for sublessons)
+def find_prev_helper(current, previous, target, lessons):
+    if current == target:
+        # Base case!
+        if previous is None:
+            # In case we're trying to find previous of the first lesson
+            return -1
+        for index, lesson in enumerate(lessons):
+            if lesson == previous:
+                return index
+        print("BAD BAD BAD (I shouldn't be here)")
+        return -1
+    return find_prev_helper(Lesson.objects.get(lesson_name=current.correct), current, target, lessons)
+
+
+# Returns index in the lesson set of the next lesson
+def find_next_lesson(current_lesson, lessons):
+    for index, lesson in enumerate(lessons):
+        if lesson.lesson_name == current_lesson.correct:
+            return index
+    return -1
 
 
 def user_to_dict(user, user_number):
@@ -144,5 +175,5 @@ def locate_confirms(code):
         ans += line[8:len(line) - 1]
         ans += ", "
     if len(lines) > 1:
-        return "{" + ans[:len(ans) - 2] + "}"
+        return "(" + ans[:len(ans) - 2] + ")"
     return ans[:len(ans) - 2]

@@ -16,7 +16,13 @@
         </h1>
     </div>
 </div>
-<h2 style="margin-left: 20px">{{lessonSetName | safe}}</h2>
+<div style="display: flex;">
+    <h2 style="margin-left: 20px; display: inline">{{lessonSetInfo.name | safe}}</h2>
+    <div class="form-outline" style="margin-left: 40px;">
+        <input type="search" id="lessonSearch" class="form-control" placeholder="Search Lessons"
+        aria-label="Search" />
+    </div>
+</div>
 <div id="lessonContainer" class="row no-gutters flex-nowrap" style="width: 100vw; overflow-x: scroll;">
 </div>
 <script type="application/javascript">
@@ -59,6 +65,7 @@
         });
     }
     var lessonSetData = {{lessonSetData | safe}}
+    var lessonSetInfo = {{lessonSetInfo | safe}}
 </script>
 <script src="{% static 'javascript/setStats/setStats.js' %}"></script>
 {% endblock %}

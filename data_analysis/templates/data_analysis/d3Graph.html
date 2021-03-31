@@ -10,13 +10,23 @@
 
 {% block main_content %}
 <div class="container-fluid" style="background-color: white">
-    <div id="graphDisplay" class="row" style="margin-top: 15px">
-        <h1 id="graphTitle" class="col-12" style="text-align: center"></h1>
+    <div id="graphDisplay" class="row justify-content-center" style="margin-top: 15px">
+        <div class="col-2">
+            <button type="button" class="btn btn-primary" id="setView" style="margin: 10px">Back to Set View</button>
+        </div>
+        <h1 id="graphTitle" class="col-8" style="text-align: center"></h1>
+        <div class="col-2">
+            <div style="margin: 10px">
+                <button type="button" class="btn btn-primary" id="prevLesson" disabled>Previous Lesson</button>
+                <button class="btn btn-primary" id="nextLesson" disabled>Next Lesson</button>
+            </div>
+        </div>
+        <div class="w-100"></div>
         <div class="col-2">
             <h3 class="text-center">Lesson Code</h3>
             <div id="graphCode" style="max-height: 50vh; overflow: auto; background-color: #CCC; padding: 5px"></div>
-            <h3 class="text-center">By Distance</h3>
-            <input id="filterSlider" type="range" style="transform: translate(50%, 0) scale(2, 2); margin-top: 20px;">
+            <h3 class="text-center" style="margin: 10px 0px">Filter by Answers Tried</h3>
+            <input id="filterSlider" type="range" style="transform: translate(50%, 0) scale(2, 2); margin: 10px 0px">
             <div class="row">
                 <div class="col-4">
                     <input data-category="gender" data-class="Male" class="demographic" id="male" name="male" type="checkbox" checked>

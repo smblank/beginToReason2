@@ -1,3 +1,33 @@
+document.querySelector("#lessonSearch").oninput = (event) => {
+    filterLessons(event.target.value)
+}
+
+function filterLessons(containsString) {
+    let matched = false
+    containsString = containsString.toLowerCase()
+    for (let lessonCard of document.querySelector("#lessonContainer").children) {
+        if(getAllTextValues(lessonCard).toLowerCase().includes(containsString)) {
+            lessonCard.hidden = false
+            matched = true
+        } else {
+            lessonCard.hidden = true
+        }
+    }
+    if(matched) {
+       document.querySelector("#lessonSearch").style.border = ""
+    } else {
+        document.querySelector("#lessonSearch").style.border = "1px solid red"
+    }
+}
+
+function getAllTextValues(element) {
+    ans = element.textContent
+    for (let child of element.children) {
+        ans += getAllTextValues(child)
+    }
+    return ans
+}
+
 function HTMLStringToElement(text) {
     const parent = document.createElement('div')
     parent.innerHTML = text
@@ -7,22 +37,22 @@ function HTMLStringToElement(text) {
 
 /**
  * 
- * @param {float} point 
- * @param {string} type 
- * @param {boolean} highMeansHard 
+ * @param {float} point specific number that you want to test
+ * @param {string} type name that the server uses to call this (e.g. "averageAttempts")
+ * @param {boolean} highMeansHard whether the parameter being high means the lesson is too hard (it'll be red if it's hard, green if it's easy)
  * @returns String to be added on
  */
 function withinBounds(point, type, highMeansHard) {
-    if(point < bounds[type][0]) {
+    if (point < bounds[type][0]) {
         //Too small!
-        if(highMeansHard) {
+        if (highMeansHard) {
             return `&nbsp;<img style="position: relative; top: -2px;" src="/static/images/arrow-down-circle-fill-green.svg" data-toggle="tooltip" data-placement="top" title="This was lower than the rest of the set">`
         }
         return `&nbsp;<img style="position: relative; top: -2px;" src="/static/images/arrow-down-circle-fill-red.svg" data-toggle="tooltip" data-placement="top" title="This was lower than the rest of the set">`
     }
-    if(point > bounds[type][1]) {
+    if (point > bounds[type][1]) {
         //Too big!
-        if(highMeansHard) {
+        if (highMeansHard) {
             return `&nbsp;<img style="position: relative; top: -2px;" src="/static/images/arrow-up-circle-fill-red.svg" data-toggle="tooltip" data-placement="top" title="This was higher than the rest of the set">`
         }
         return `&nbsp;<img style="position: relative; top: -2px;" src="/static/images/arrow-up-circle-fill-green.svg" data-toggle="tooltip" data-placement="top" title="This was higher than the rest of the set">`
@@ -42,7 +72,7 @@ for (let lesson of lessons) {
         continue
     }
     newCard = HTMLStringToElement(`<div class="col-3" style="margin: 20px 15px; cursor: pointer">
-    <div class="card" id="lesson${lesson.lessonID}">
+    <div class="card" id="lesson${lesson.lessonIndex}">
         <div class="card-body">
             <h5 class="card-title">${lesson.title}</h5>
             <h6 class="card-subtitle mb-2 text-muted">${lesson.name}</h6>
@@ -56,7 +86,7 @@ for (let lesson of lessons) {
     </div>
 </div>`)
     newCard.onclick = () => {
-        window.location.href = `/data_analysis/graph/${lesson.lessonID}`
+        window.location.href = `/data_analysis/data/${lessonSetInfo["id"]}/${lesson.lessonIndex}`
     }
     container.appendChild(newCard)
 }

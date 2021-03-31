@@ -6,26 +6,24 @@ from core.models import Lesson, LessonSet
 # Returns JSON array of lessons in the set
 def get_set_stats(lesson_set_id):
     lesson_set_list = []
-    for lesson in LessonSet.objects.get(id=lesson_set_id).lessons.all():
-        lesson_set_list.append(get_lesson_stats(lesson.id))
-    lesson_set_dict = {"lessons": lesson_set_list, "statBounds": find_stat_ranges(lesson_set_list)}
-    return json.dumps(lesson_set_dict)
+    for index, lesson in enumerate(LessonSet.objects.get(id=lesson_set_id).lessons.all()):
+        lesson_set_list.append(get_lesson_stats(lesson, index))
+    return json.dumps({"lessons": lesson_set_list, "statBounds": find_stat_ranges(lesson_set_list)})
 
 
 # Returns a dict of a single lesson for lesson statistics
-def get_lesson_stats(lesson_id):
-    lesson = Lesson.objects.get(id=lesson_id)
+def get_lesson_stats(lesson, index):
     lesson_dict = {"name": lesson.lesson_name, "title": lesson.lesson_title}
-    lesson_dict.update(get_user_stats(lesson_id))
+    lesson_dict.update(get_user_stats(lesson, index))
     return lesson_dict
 
 
 # Returns a dictionary of the user-specific stats (e.g. avg. num of attempts)
-def get_user_stats(lesson_id):
+def get_user_stats(lesson, index):
     query = DataLog.objects.filter(
-        lesson_key_id=lesson_id).order_by('user_key', 'time_stamp')
+        lesson_key_id=lesson.id).order_by('user_key', 'time_stamp')
     if not query:
-        return {"userCount": 0, "completionRate": 0, "firstTryRate": 0, "averageAttempts": 0, "lessonID": lesson_id}
+        return {"userCount": 0, "completionRate": 0, "firstTryRate": 0, "averageAttempts": 0, "lessonIndex": index}
     user_count = 1
     completions = 0
     attempts = 0
@@ -40,7 +38,7 @@ def get_user_stats(lesson_id):
         completions += int(log.status == 'success')
         attempts += 1
     return {"userCount": user_count, "completionRate": completions / user_count, "firstTryRate": first_try / user_count,
-            "averageAttempts": attempts / user_count, "lessonID": lesson_id}
+            "averageAttempts": attempts / user_count, "lessonIndex": index}
 
 
 # Gets the ranges that outliers lie out of
@@ -56,8 +54,6 @@ def find_stat_ranges(lesson_set_list):
         completion_rate.append(lesson.get("completionRate"))
         first_try.append(lesson.get("firstTryRate"))
         average_attempts.append(lesson.get("averageAttempts"))
-    print(first_try)
-    print(get_normal_range(first_try, length))
     return {"completionRate": get_normal_range(completion_rate, length),
             "firstTryRate": get_normal_range(first_try, length),
             "averageAttempts": get_normal_range(average_attempts, length)}
@@ -81,6 +77,6 @@ def get_normal_range(data_list, list_length):
     return quartile_1, quartile_3
 
 
-# Returns the set's name (not the name of the lesson)
-def get_set_name(lesson_set_id):
-    return LessonSet.objects.get(id=lesson_set_id).set_name
+# Returns the set's info (name, id)
+def get_set_info(lesson_set_id):
+    return {"name": LessonSet.objects.get(id=lesson_set_id).set_name, "id": lesson_set_id}
