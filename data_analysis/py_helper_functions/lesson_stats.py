@@ -9,19 +9,29 @@ def get_set_stats(lesson_set_id):
     for index, lesson in enumerate(LessonSet.objects.get(id=lesson_set_id).lessons.all()):
         if not lesson.is_alternate:
             # Throwing out alternate lessons
-            lesson_set_list.append(get_lesson_stats(lesson, index))
-    return json.dumps({"lessons": lesson_set_list, "statBounds": find_stat_ranges(lesson_set_list)})
+            lesson_set_list.append(_get_lesson_stats(lesson, index))
+    return json.dumps({"lessons": lesson_set_list, "statBounds": _find_stat_ranges(lesson_set_list)})
+
+
+# Returns the set's info (name, id)
+def get_set_info(lesson_set_id):
+    return {"name": LessonSet.objects.get(id=lesson_set_id).set_name, "id": lesson_set_id}
+
+
+"""
+Helper Methods
+"""
 
 
 # Returns a dict of a single lesson for lesson statistics
-def get_lesson_stats(lesson, index):
+def _get_lesson_stats(lesson, index):
     lesson_dict = {"name": lesson.lesson_name, "title": lesson.lesson_title}
-    lesson_dict.update(get_user_stats(lesson, index))
+    lesson_dict.update(_get_user_stats(lesson, index))
     return lesson_dict
 
 
 # Returns a dictionary of the user-specific stats (e.g. avg. num of attempts)
-def get_user_stats(lesson, index):
+def _get_user_stats(lesson, index):
     query = DataLog.objects.filter(
         lesson_key_id=lesson.id).order_by('user_key', 'time_stamp')
     if not query:
@@ -45,7 +55,7 @@ def get_user_stats(lesson, index):
 
 
 # Gets the ranges that outliers lie out of
-def find_stat_ranges(lesson_set_list):
+def _find_stat_ranges(lesson_set_list):
     completion_rate = []
     first_try = []
     average_attempts = []
@@ -57,13 +67,13 @@ def find_stat_ranges(lesson_set_list):
         completion_rate.append(lesson.get("completionRate"))
         first_try.append(lesson.get("firstTryRate"))
         average_attempts.append(lesson.get("averageAttempts"))
-    return {"completionRate": get_normal_range(completion_rate, length),
-            "firstTryRate": get_normal_range(first_try, length),
-            "averageAttempts": get_normal_range(average_attempts, length)}
+    return {"completionRate": _get_normal_range(completion_rate, length),
+            "firstTryRate": _get_normal_range(first_try, length),
+            "averageAttempts": _get_normal_range(average_attempts, length)}
 
 
 # Currently returning just the quartiles because 1.5*IQR was too lenient
-def get_normal_range(data_list, list_length):
+def _get_normal_range(data_list, list_length):
     data_list.sort()
     half_length = int(list_length / 2)
 
@@ -78,8 +88,3 @@ def get_normal_range(data_list, list_length):
 
     inter_quartile = quartile_3 - quartile_1
     return quartile_1, quartile_3
-
-
-# Returns the set's info (name, id)
-def get_set_info(lesson_set_id):
-    return {"name": LessonSet.objects.get(id=lesson_set_id).set_name, "id": lesson_set_id}

@@ -1,5 +1,5 @@
 # BeginToReason2
-[![Build Status](https://travis-ci.com/ClemsonRSRG/beginToReason2.svg?branch=master)](https://travis-ci.com/ClemsonRSRG/beginToReason2)
+[![Python Django Application](https://github.com/ClemsonRSRG/beginToReason2/actions/workflows/python-django-app.yml/badge.svg?branch=master)](https://github.com/ClemsonRSRG/beginToReason2/actions/workflows/python-django-app.yml)
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=ClemsonRSRG/beginToReason2)](https://dependabot.com)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/ClemsonRSRG/beginToReason2/master/LICENSE.txt)
 

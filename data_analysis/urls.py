@@ -10,7 +10,7 @@ app_name = 'data_analysis'
 
 # URL patterns to be matched.
 urlpatterns = [
-    path('data/<int:setIndex>/<int:lessonIndex>', views.d3_graph, name="d3-graph"),
+    path('data/<int:set_id>/<int:lesson_index>', views.d3_graph, name="d3-graph"),
     path('data/<int:index>', views.set_statistics, name='set-statistics'),
     path('instructor', views.instructor, name='instructor')
 ]
