@@ -2,10 +2,10 @@
 Main file for displaying graphs.
 """
 import json
-import re
 from accounts.models import UserInformation
 from core.models import LessonSet
 from data_analysis.models import DataLog
+from data_analysis.py_helper_functions.datalog_helper import locate_confirms
 from data_analysis.py_helper_functions.graph_viewer.node import Node
 
 
@@ -56,7 +56,7 @@ def _lesson_to_graph(lesson_id, is_anonymous):
     users_dict[str(user_number)] = _user_to_dict(prev_student, str(user_number), is_anonymous)
     for log in query:
         # Only need confirm statements
-        log.code = _locate_confirms(log.code)
+        log.code = locate_confirms(log.code)
         prev_node.add_appearance(str(user_number))
         # Is this kid same as the last one?
         if log.user_key != prev_student:
@@ -166,14 +166,3 @@ def _get_name(user):
 
 def _get_user_info(user):
     return UserInformation.objects.get(user=user.id)
-
-
-def _locate_confirms(code):
-    lines = re.findall("Confirm [^;]*;|ensures [^;]*;", code)
-    ans = ""
-    for line in lines:
-        ans += line[8:len(line) - 1]
-        ans += ", "
-    if len(lines) > 1:
-        return "(" + ans[:len(ans) - 2] + ")"
-    return ans[:len(ans) - 2]

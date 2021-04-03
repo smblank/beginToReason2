@@ -2,6 +2,7 @@
 This module contains our Django helper functions for the "data analysis" application.
 """
 import json
+import re
 from django.utils import timezone
 from django.contrib.auth.models import User
 from accounts.models import UserInformation
@@ -70,3 +71,13 @@ def finished_lesson_count(user):
     print(get_user_successes.count())
 
     return get_user_successes.count()
+
+def locate_confirms(code):
+    lines = re.findall("Confirm [^;]*;|ensures [^;]*;", code)
+    ans = ""
+    for line in lines:
+        ans += line[8:len(line) - 1]
+        ans += ", "
+    if len(lines) > 1:
+        return "(" + ans[:len(ans) - 2] + ")"
+    return ans[:len(ans) - 2]
