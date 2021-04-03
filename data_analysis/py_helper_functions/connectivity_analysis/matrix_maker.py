@@ -16,7 +16,9 @@ def lesson_to_matrix(set_id, lesson_index, attenuation_constant):
     for log in query:
         if prev_student != log.user_key:
             # New student!
+            prev_student = log.user_key
             _disassemble_chain(matrix, chain, attenuation_constant)
+            chain = []
         chain.append(answer_to_index.get(log.code))
     # Post iteration, gotta do this for the last student
     _disassemble_chain(matrix, chain, attenuation_constant)
@@ -62,19 +64,17 @@ def _make_row(length):
     return row
 
 
-# Adds to the matrix the connections described by the chain. Empties chain when done
+# Adds to the matrix the connections described by the chain
 def _disassemble_chain(matrix, chain, attenuation_constant):
     for chain_index, matrix_index in enumerate(chain):
         _create_connections(matrix, chain, attenuation_constant, chain_index, matrix_index)
-    chain = []
 
 
 # Helper for disassemble_chain
 def _create_connections(matrix, chain, attenuation_constant, chain_index, matrix_index):
     strength = 1
     for index in range(chain_index + 1, len(chain)):
-        matrix[matrix_index][chain[index]] += strength
-        matrix[chain[index]][matrix_index] += strength
+        matrix[matrix_index][chain[index]] += strength  # add to connection from matrix_index to chain[index]
         strength *= attenuation_constant  # Recursively weakens by the constant
 
 
