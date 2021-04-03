@@ -25,7 +25,7 @@ def lesson_to_matrix(set_id, lesson_index, attenuation_constant):
     # Post iteration, gotta do this for the last student
     _disassemble_chain(matrix, chain, attenuation_constant)
     _display_matrix(matrix, answer_to_index)
-    _relations_matrix(matrix)
+    _display_matrix(_relations_matrix(matrix), answer_to_index)
 
 
 # returns a matrix and hashmap between unique answers and indices in the matrix,
@@ -94,7 +94,7 @@ def _relations_matrix(matrix):
             relation_matrix[row_index][other_row_index] = angle
             relation_matrix[other_row_index][row_index] = angle  # Symmetric because it's relational
 
-    _display_matrix(relation_matrix, "Angles:")
+    return relation_matrix
 
 
 # Displays the matrix with newlines and all that good stuff
@@ -109,8 +109,7 @@ def _find_angle(row1, row2):
     magnitude_product = _magnitude(row1) * _magnitude(row2)
     if magnitude_product == 0:
         return "NaN"
-    print(_dot_product(row1, row2) / magnitude_product)
-    return math.acos(_dot_product(row1, row2) / magnitude_product)
+    return (math.pi / 2 - math.acos(_dot_product(row1, row2) / magnitude_product)) / (math.pi / 2)
 
 
 # Basic dot product
