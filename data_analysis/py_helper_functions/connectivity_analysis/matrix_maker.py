@@ -24,9 +24,10 @@ def lesson_to_matrix(set_id, lesson_index, attenuation_constant):
         chain.append(answer_to_index.get(log.code))
     # Post iteration, gotta do this for the last student
     _disassemble_chain(matrix, chain, attenuation_constant)
-    _write_to_csv(matrix, _relations_matrix(matrix), answer_to_index, "matrix_results_rads_pi", answer_count)
-    # _display_matrix(matrix, answer_to_index)
-    # _display_matrix(_relations_matrix(matrix), answer_to_index)
+    matrix, relation_matrix, index_to_answer, answer_count = \
+        _hierarchical_clustering(matrix, _relations_matrix(matrix),
+                                 _reverse_dict(answer_to_index, answer_count), math.pi / 6, answer_count)
+    _write_to_csv(matrix, _relations_matrix(matrix), index_to_answer, "matrix_results_rads_pi", answer_count)
 
 
 # returns a matrix and hashmap between unique answers and indices in the matrix,
@@ -91,18 +92,13 @@ def _relations_matrix(matrix):
 
     for row_index, row in enumerate(matrix):
         for other_row_index in range(row_index, side_length):
-            relation_strength = (math.pi / 2 - _find_angle(row, matrix[other_row_index])) / (math.pi / 2)
-            relation_matrix[row_index][other_row_index] = relation_strength
-            relation_matrix[other_row_index][row_index] = relation_strength  # Symmetric because it's relational
+            # relation_strength = (math.pi / 2 - _find_angle(row, matrix[other_row_index])) / (math.pi / 2)
+            relation_strength = _find_angle(row, matrix[other_row_index])
+            relation_matrix[row_index][other_row_index] = relation_matrix[other_row_index][row_index] = \
+                relation_strength
+            # Symmetric because it's relational
 
     return relation_matrix
-
-
-# Displays the matrix with newlines and all that good stuff
-def _display_matrix(matrix, answer_to_index):
-    print(answer_to_index)
-    for row in matrix:
-        print(row)
 
 
 # Using dot product (law of cosines)
@@ -110,7 +106,11 @@ def _find_angle(row1, row2):
     magnitude_product = _magnitude(row1) * _magnitude(row2)
     if magnitude_product == 0:
         return float("NaN")
-    return math.acos(_dot_product(row1, row2) / magnitude_product)
+    cos_theta = _dot_product(row1, row2) / magnitude_product
+    if cos_theta > 1:
+        print("UH-OH! gonna round " + str(cos_theta) + " to 1... hope nobody notices")
+        return 0
+    return math.acos(cos_theta)
 
 
 # Basic dot product
@@ -129,9 +129,8 @@ def _magnitude(row):
     return math.sqrt(quadrature_sum)
 
 
-def _write_to_csv(prediction_matrix, relation_matrix, string_to_index, file_name, dimension):
-    answers_list = _reverse_dict(string_to_index, dimension)
-    prediction_matrix = _add_headers(prediction_matrix, answers_list, "TO\\FROM")
+def _write_to_csv(prediction_matrix, relation_matrix, answers_list, file_name, dimension):
+    prediction_matrix = _add_headers(prediction_matrix, answers_list, "FROM\\TO")
     relation_matrix = _add_headers(relation_matrix, answers_list, "")
     csv_file = open(file_name + ".csv", 'w', newline='')
     writer = csv.writer(csv_file)
@@ -151,7 +150,6 @@ def _reverse_dict(dictionary, list_length):
 
 
 def _add_headers(matrix, headers, top_left):
-
     # Add on left
     for index, row in enumerate(matrix):
         matrix[index] = [headers[index]] + row
@@ -160,3 +158,43 @@ def _add_headers(matrix, headers, top_left):
     matrix = [[top_left] + headers] + matrix
 
     return matrix
+
+
+def _hierarchical_clustering(connection_matrix, distance_matrix, index_to_answer, max_distance, dimension):
+    # Find closest pair
+    record_angle = 400
+    record_row = -1
+    record_col = -1
+    for row_index, row in enumerate(distance_matrix):
+        for col_index in range(row_index + 1, dimension):
+            if row[col_index] < record_angle:
+                record_angle = row[col_index]
+                record_col = col_index
+                record_row = row_index
+
+    # Base case
+    if record_angle > max_distance:
+        return connection_matrix, distance_matrix, index_to_answer, dimension
+
+    # Update index_to_answer list
+    index_to_answer[record_row] += " & " + index_to_answer[record_col]
+    index_to_answer.pop(record_col)
+
+    # Add rows together
+    for index, val in enumerate(connection_matrix[record_col]):
+        connection_matrix[record_row][index] += val
+
+    # Add cols together, delete old col
+    for index in range(dimension):
+        row = connection_matrix[index]
+        row[record_row] += row[record_col]
+        row.pop(record_col)
+
+    # Delete old row
+    connection_matrix.pop(record_col)
+
+    # Recalculate distances
+    distance_matrix = _relations_matrix(connection_matrix)
+
+    # Recursive
+    return _hierarchical_clustering(connection_matrix, distance_matrix, index_to_answer, max_distance, dimension - 1)
