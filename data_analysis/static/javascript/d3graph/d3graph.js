@@ -1,5 +1,4 @@
 document.querySelector('#graphTitle').innerHTML = `${graph.lesson.name}<br>${graph.lesson.title}`
-document.querySelector('#graphCode').innerHTML = graph.lesson.code.replace(/\\r\\n/g, "<br>")
 const urlSplit = window.location.href.split('/')
 document.querySelector('#prevLesson').disabled = graph.lesson.prevLesson < 0
 document.querySelector('#nextLesson').disabled = graph.lesson.nextLesson < 0
@@ -762,7 +761,7 @@ function fadedColor(d) {
 
 // set the dimensions of graph, data
 const width = 960
-const height = 600
+const height = 642
 const margin = {
   "left": 50,
   "right": 50,

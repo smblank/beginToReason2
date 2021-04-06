@@ -3,14 +3,26 @@ document.querySelector("#lessonSearch").oninput = (event) => {
 }
 
 function filterLessons(containsString) {
+    const container = document.querySelector("#lessonContainer")
+    container.querySelectorAll(".arrow").forEach((arrow) => {
+        arrow.hidden = containsString
+    })
+    console.log(document.querySelectorAll(".arrow"));
     let matched = false
     containsString = containsString.toLowerCase()
-    for (let lessonCard of document.querySelector("#lessonContainer").children) {
-        if(getAllTextValues(lessonCard).toLowerCase().includes(containsString)) {
-            lessonCard.hidden = false
-            matched = true
-        } else {
-            lessonCard.hidden = true
+    let isArrow = false
+    for (let lessonCard of container.children) {
+        if(!isArrow) {
+            isArrow = true
+            if(getAllTextValues(lessonCard).toLowerCase().includes(containsString)) {
+                lessonCard.hidden = false
+                matched = true
+            } else {
+                lessonCard.hidden = true
+            }
+        }
+        else {
+            isArrow = false
         }
     }
     if(matched) {
@@ -63,26 +75,34 @@ function withinBounds(point, type, highMeansHard) {
 
 //Make cards
 const container = document.querySelector("#lessonContainer")
-let newCard
+let addition
 const lessons = lessonSetData["lessons"]
 const bounds = lessonSetData["statBounds"]
+let index = 0
 for (let lesson of lessons) {
-    newCard = HTMLStringToElement(`<div class="col-3" style="margin: 20px 15px; cursor: pointer">
-    <div class="card" id="lesson${lesson.lessonIndex}">
+    addition = HTMLStringToElement(`<div class="col-3" style="margin: 20px 0px 20px 5px" id="lesson${lesson.lessonIndex}">
+    <div class="card">
         <div class="card-body">
+            <i class="fas fa-cog" style="float: right"></i>
             <h5 class="card-title">${lesson.title}</h5>
             <h6 class="card-subtitle mb-2 text-muted">${lesson.name}</h6>
             <p class="card-text">
                 Average attempts: ${lesson.averageAttempts.toString().substr(0, 4)}${withinBounds(lesson.averageAttempts, "averageAttempts", true)}<br>
                 First try rate: ${(100*lesson.firstTryRate).toString().substr(0, 5)}%${withinBounds(lesson.firstTryRate, "firstTryRate", false)}<br>
+                <btn type="button" class="btn btn-primary float-right">View Graph</btn>
                 Completion rate: ${(100 * lesson.completionRate).toString().substr(0, 5)}%${withinBounds(lesson.completionRate, "completionRate", false)}<br>
                 Users: ${lesson.userCount}
             </p>
         </div>
     </div>
 </div>`)
-    newCard.onclick = () => {
+    addition.querySelector(".btn").onclick = () => {
         window.location.href = `/data_analysis/data/${lessonSetInfo["id"]}/${lesson.lessonIndex}`
     }
-    container.appendChild(newCard)
+    container.appendChild(addition)
+    index++
+    if(index != lessons.length) { //so I don't add an arrow going nowhere
+        addition = HTMLStringToElement(`<div class="arrow"><svg width="60" height="12"><polygon points="0, 3 50, 3 50, 0 60, 6 50, 12 50, 9 0, 9" fill="gray" /></svg></div>`)
+        container.appendChild(addition)
+    }
 }

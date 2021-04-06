@@ -6,10 +6,20 @@
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/catalog.scss' %}" media="screen">
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/profile.scss' %}" media="screen">
 <style>
-    /* temporary and ugly fix */
+    /* ugly fix */
     body {overflow-y: hidden;}
 </style>
 {% endcompress %}
+{% endblock %}
+
+{% block body_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.min.js"
+            integrity="sha256-qCCcAHv/Z0u7K344shsZKUF2NR+59ooA3XWRj0LPGIQ=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/theme-chaos.min.js"
+            integrity="sha256-ck2clJ3aqYWprrGnnBxu1OCoEh54qkccsXRguhaZyuo=" crossorigin="anonymous"></script>
+    <script src="{% static 'javascript/lesson/mode-resolve.js' %}"></script>
+    <script src="{% static 'javascript/lesson/editorUpdate.js' %}"></script>
+    <script src="{% static 'javascript/d3graph/d3.v4.js' %}"></script>
 {% endblock %}
 
 {% block main_content %}
@@ -26,15 +36,17 @@
             </div>
         </div>
         <div class="w-100"></div>
-        <div class="col-2">
+        <div class="col-3">
             <div class="card">
                 <h3 class="text-center">Lesson Code</h3>
-                <div id="graphCode" style="max-height: 50vh; overflow: auto; background-color: #CCC; padding: 5px"></div>
+            </div>
+            <div style="position: relative; height: 50vh;">
+                <div id="editor" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"></div>
             </div>
             <div class="card" style="margin: 10px 0px">
                 <h3 class="text-center" style="margin: 10px 0px">Filter by Answers Tried</h3>
                 <div class="card-body">
-                    <input id="filterSlider" type="range" style="transform: translate(50%, 0) scale(2, 2); margin: 10px 0px">
+                    <input id="filterSlider" type="range" style="transform: translate(100%, 0) scale(2.6, 2.6); margin: auto">
                 </div>
             </div>
             <div class="row">
@@ -52,8 +64,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-8">
-            <svg id="lessonGraph" class="col-12"></svg>
+        <div class="col-7">
+            <svg id="lessonGraph"></svg>
         </div>
         <div style="display: flex; flex-direction: column" class="row col-2">
             <div class="card">
@@ -71,7 +83,7 @@
                 <btn class="btn btn-primary" id="selectClear" type="button" style="float: right; margin: 5px">Clear</btn>
                 <btn class="btn btn-primary" id="selectAll" type="button" style="float: right; margin: 5px">Select All</btn>
             </div>
-            <div class="card" id="userList" style="max-height: 49vh; overflow: auto; padding: 5px;"></div>
+            <div class="card" id="userList" style="max-height: 47vh; overflow: auto; padding: 5px;"></div>
         </div>
     </div>
 </div>
@@ -80,6 +92,6 @@
     graph.data = {{graphData | safe}}
     graph.lesson = {{lessonData | safe}}
 </script>
-<script src="{% static 'javascript/d3graph/d3.v4.js' %}"></script>
 <script src="{% static 'javascript/d3graph/d3graph.js' %}"></script>
+<script src="{% static 'javascript/d3graph/basiceditor.js' %}"></script>
 {% endblock %}
