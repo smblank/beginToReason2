@@ -83,21 +83,34 @@ for (let lesson of lessons) {
     addition = HTMLStringToElement(`<div class="col-3" style="margin: 20px 0px 20px 5px" id="lesson${lesson.lessonIndex}">
     <div class="card">
         <div class="card-body">
-            <i class="fas fa-cog" style="float: right"></i>
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="settings${lesson.lessonIndex}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  style="float: right">
+                <i class="fas fa-cog"></i>
+            </button>
+            <div class="dropdown-menu" id="menu${lesson.lessonIndex}" aria-labelledby="settings${lesson.lessonIndex}">
+                <a class="dropdown-item" href="#">Manage Users</a>
+                <a class="dropdown-item" href="#">Change Order</a>
+                <a class="dropdown-item" href="#">Set Alternate Lessons</a>
+            </div>
             <h5 class="card-title">${lesson.title}</h5>
             <h6 class="card-subtitle mb-2 text-muted">${lesson.name}</h6>
-            <p class="card-text">
-                Average attempts: ${lesson.averageAttempts.toString().substr(0, 4)}${withinBounds(lesson.averageAttempts, "averageAttempts", true)}<br>
-                First try rate: ${(100*lesson.firstTryRate).toString().substr(0, 5)}%${withinBounds(lesson.firstTryRate, "firstTryRate", false)}<br>
+            <div class="d-flex justify-content-between align-items-end">
+                <div class="card-text">
+                    Average attempts: ${lesson.averageAttempts.toString().substr(0, 4)}${withinBounds(lesson.averageAttempts, "averageAttempts", true)}<br>
+                    First try rate: ${(100*lesson.firstTryRate).toString().substr(0, 5)}%${withinBounds(lesson.firstTryRate, "firstTryRate", false)}<br>
+                    Completion rate: ${(100 * lesson.completionRate).toString().substr(0, 5)}%${withinBounds(lesson.completionRate, "completionRate", false)}<br>
+                    Current Users: ???<br>
+                    Users: ${lesson.userCount}
+                </div>
                 <btn type="button" class="btn btn-primary float-right">View Graph</btn>
-                Completion rate: ${(100 * lesson.completionRate).toString().substr(0, 5)}%${withinBounds(lesson.completionRate, "completionRate", false)}<br>
-                Users: ${lesson.userCount}
-            </p>
+            </div>
         </div>
     </div>
 </div>`)
-    addition.querySelector(".btn").onclick = () => {
+    addition.querySelector(".btn-primary").onclick = () => {
         window.location.href = `/data_analysis/data/${lessonSetInfo["id"]}/${lesson.lessonIndex}`
+    }
+    addition.querySelector(`#menu${lesson.lessonIndex}`).onclick = () => {
+        window.sessionStorage.setItem("selectedLesson", lesson.lessonIndex)
     }
     container.appendChild(addition)
     index++

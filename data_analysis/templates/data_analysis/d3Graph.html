@@ -5,6 +5,7 @@
 {% compress css %}
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/catalog.scss' %}" media="screen">
 <link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/profile.scss' %}" media="screen">
+<link rel="stylesheet" type="text/x-scss" href="{% static 'css/pages/lesson.scss' %}" media="screen">
 <style>
     /* ugly fix */
     body {overflow-y: hidden;}
@@ -41,7 +42,7 @@
                 <h3 class="text-center">Lesson Code</h3>
             </div>
             <div style="position: relative; height: 50vh;">
-                <div id="editor" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0;"></div>
+                <div id="editor" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-right: 0px !important;"></div>
             </div>
             <div class="card" style="margin: 10px 0px">
                 <h3 class="text-center" style="margin: 10px 0px">Filter by Answers Tried</h3>
